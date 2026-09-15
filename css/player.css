@@ -1,0 +1,564 @@
+/* =========================================================
+   自定义视频播放器控件样式
+   配合 watch.html 使用
+   ========================================================= */
+
+/* ---------- 控制条整体 ---------- */
+.pc-bar {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  padding: 0 12px 8px;
+  background: linear-gradient(180deg, transparent, rgba(0, 0, 0, 0.72) 55%, rgba(0, 0, 0, 0.88));
+  z-index: 8;
+  opacity: 1;
+  transition: opacity 0.35s var(--ease), transform 0.35s var(--ease);
+  user-select: none;
+  -webkit-user-select: none;
+}
+
+/* 播放中且鼠标离开时隐藏控制条 */
+.player-shell.pc-hidden .pc-bar {
+  opacity: 0;
+  transform: translateY(6px);
+  pointer-events: none;
+}
+
+/* 鼠标移到播放器上时，控制条重新出现 */
+.player-shell.pc-hidden:hover .pc-bar {
+  opacity: 1;
+  transform: translateY(0);
+  pointer-events: auto;
+}
+
+/* 暂停时永远显示控制条 */
+.player-shell.paused .pc-bar {
+  opacity: 1 !important;
+  transform: translateY(0) !important;
+  pointer-events: auto !important;
+}
+
+/* ---------- 进度条 ---------- */
+.pc-progress {
+  position: relative;
+  padding: 8px 0;
+  cursor: pointer;
+  touch-action: none;
+}
+
+.pc-progress-track {
+  position: relative;
+  height: 4px;
+  border-radius: var(--radius-full);
+  background: rgba(255, 255, 255, 0.22);
+  transition: height 0.15s var(--ease);
+  overflow: visible;
+}
+
+.pc-progress:hover .pc-progress-track,
+.pc-progress.dragging .pc-progress-track {
+  height: 7px;
+}
+
+/* 已缓冲部分 */
+.pc-progress-buffer {
+  position: absolute;
+  left: 0;
+  top: 0;
+  bottom: 0;
+  width: 0;
+  border-radius: var(--radius-full);
+  background: rgba(255, 255, 255, 0.34);
+  transition: width 0.3s var(--ease);
+}
+
+/* 已播放部分 */
+.pc-progress-played {
+  position: absolute;
+  left: 0;
+  top: 0;
+  bottom: 0;
+  width: 0;
+  border-radius: var(--radius-full);
+  background: linear-gradient(90deg, var(--primary-dim), var(--primary-bright));
+  box-shadow: 0 0 10px var(--primary-glow);
+}
+
+/* 进度条上的圆点 */
+.pc-progress-dot {
+  position: absolute;
+  right: -6px;
+  top: 50%;
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  background: var(--primary-bright);
+  transform: translateY(-50%) scale(0);
+  transition: transform 0.18s var(--ease-out);
+  box-shadow: 0 0 0 4px rgba(224, 168, 105, 0.22), 0 2px 6px rgba(0, 0, 0, 0.45);
+  pointer-events: none;
+}
+
+.pc-progress:hover .pc-progress-dot,
+.pc-progress.dragging .pc-progress-dot {
+  transform: translateY(-50%) scale(1);
+}
+
+/* 悬停时的时间提示 */
+.pc-tooltip {
+  position: absolute;
+  bottom: 26px;
+  transform: translateX(-50%);
+  padding: 3px 8px;
+  border-radius: var(--radius-sm);
+  background: rgba(0, 0, 0, 0.86);
+  color: #f3ebe0;
+  font-size: 12px;
+  font-family: var(--font-mono);
+  white-space: nowrap;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.16s var(--ease);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+}
+
+.pc-progress:hover .pc-tooltip,
+.pc-progress.dragging .pc-tooltip {
+  opacity: 1;
+}
+
+/* ---------- 按钮行 ---------- */
+.pc-row {
+  display: flex;
+  align-items: center;
+  gap: 3px;
+  padding-top: 1px;
+}
+
+/* 通用图标按钮 */
+.pc-btn {
+  width: 36px;
+  height: 36px;
+  border-radius: var(--radius-sm);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: rgba(255, 255, 255, 0.92);
+  transition: background-color 0.18s var(--ease), color 0.18s var(--ease),
+    transform 0.12s var(--ease);
+  flex-shrink: 0;
+  position: relative;
+}
+
+.pc-btn:hover {
+  background: rgba(255, 255, 255, 0.14);
+  color: var(--primary-bright);
+}
+
+.pc-btn:active {
+  transform: scale(0.9);
+}
+
+.pc-btn svg {
+  width: 20px;
+  height: 20px;
+}
+
+.pc-btn:disabled {
+  opacity: 0.3;
+  cursor: not-allowed;
+}
+
+.pc-btn:disabled:hover {
+  background: none;
+  color: rgba(255, 255, 255, 0.92);
+}
+
+/* 文字按钮（播放速度） */
+.pc-btn-text {
+  width: auto;
+  min-width: 46px;
+  padding: 0 9px;
+  font-size: 12.5px;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+  letter-spacing: 0.02em;
+}
+
+/* 播放/暂停图标切换 */
+.pc-ico-pause,
+.player-shell:not(.paused) .pc-ico-play {
+  display: none;
+}
+
+.player-shell:not(.paused) .pc-ico-pause {
+  display: block;
+}
+
+/* 静音图标切换 */
+.pc-ico-mute {
+  display: none;
+}
+
+.player-shell.muted .pc-ico-vol {
+  display: none;
+}
+
+.player-shell.muted .pc-ico-mute {
+  display: block;
+}
+
+/* 全屏图标切换 */
+.pc-ico-exitfull {
+  display: none;
+}
+
+.player-shell:fullscreen .pc-ico-full,
+.player-shell.is-fullscreen .pc-ico-full {
+  display: none;
+}
+
+.player-shell:fullscreen .pc-ico-exitfull,
+.player-shell.is-fullscreen .pc-ico-exitfull {
+  display: block;
+}
+
+/* ---------- 时间显示 ---------- */
+.pc-time {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  padding: 0 9px;
+  font-size: 12.5px;
+  font-family: var(--font-mono);
+  color: rgba(255, 255, 255, 0.88);
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+
+.pc-time-sep {
+  opacity: 0.42;
+}
+
+.pc-spacer {
+  flex: 1;
+}
+
+/* ---------- 音量 ---------- */
+.pc-volume {
+  display: flex;
+  align-items: center;
+  flex-shrink: 0;
+}
+
+.pc-volume-slider {
+  width: 0;
+  overflow: hidden;
+  transition: width 0.25s var(--ease-out), margin 0.25s var(--ease-out);
+  display: flex;
+  align-items: center;
+}
+
+.pc-volume:hover .pc-volume-slider,
+.pc-volume-slider:focus-within {
+  width: 74px;
+  margin-right: 6px;
+}
+
+.pc-volume-slider input[type='range'] {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 68px;
+  height: 4px;
+  border-radius: var(--radius-full);
+  background: rgba(255, 255, 255, 0.28);
+  outline: none;
+  cursor: pointer;
+  margin: 0;
+}
+
+.pc-volume-slider input[type='range']::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  background: var(--primary-bright);
+  cursor: pointer;
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.45);
+  transition: transform 0.15s var(--ease);
+}
+
+.pc-volume-slider input[type='range']::-webkit-slider-thumb:hover {
+  transform: scale(1.18);
+}
+
+.pc-volume-slider input[type='range']::-moz-range-thumb {
+  width: 12px;
+  height: 12px;
+  border: none;
+  border-radius: 50%;
+  background: var(--primary-bright);
+  cursor: pointer;
+}
+
+.pc-volume-slider input[type='range']::-moz-range-track {
+  height: 4px;
+  border-radius: var(--radius-full);
+  background: rgba(255, 255, 255, 0.28);
+}
+
+/* ---------- 中央大播放按钮 ---------- */
+.pc-bigplay {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  width: 74px;
+  height: 74px;
+  border-radius: 50%;
+  transform: translate(-50%, -50%) scale(0.85);
+  background: rgba(0, 0, 0, 0.5);
+  backdrop-filter: blur(6px);
+  -webkit-backdrop-filter: blur(6px);
+  border: 1.5px solid rgba(255, 255, 255, 0.24);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 7;
+  opacity: 0;
+  visibility: hidden;
+  transition: opacity 0.28s var(--ease), transform 0.28s var(--ease-out),
+    visibility 0.28s, background-color 0.2s var(--ease);
+}
+
+.player-shell.paused .pc-bigplay,
+.player-shell.pc-ready.paused .pc-bigplay {
+  opacity: 1;
+  visibility: visible;
+  transform: translate(-50%, -50%) scale(1);
+}
+
+.pc-bigplay:hover {
+  background: rgba(0, 0, 0, 0.66);
+  border-color: var(--primary);
+  transform: translate(-50%, -50%) scale(1.07);
+}
+
+.pc-bigplay svg {
+  width: 30px;
+  height: 30px;
+  color: #fff;
+  margin-left: 4px;
+}
+
+/* 播放中时大按钮隐藏 */
+.player-shell:not(.paused) .pc-bigplay {
+  opacity: 0;
+  visibility: hidden;
+}
+
+/* ---------- 双击全屏提示 ---------- */
+.player-shell .dblclick-hint {
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
+  padding: 26px 20px;
+  background: rgba(0, 0, 0, 0.45);
+  border-radius: var(--radius);
+  color: #fff;
+  font-size: 13px;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.22s var(--ease);
+  z-index: 6;
+  backdrop-filter: blur(4px);
+}
+
+/* ---------- 全屏模式 ---------- */
+.player-shell:fullscreen,
+.player-shell.is-fullscreen {
+  border-radius: 0;
+  border: none;
+  aspect-ratio: auto;
+  width: 100vw;
+  height: 100vh;
+  box-shadow: none;
+}
+
+.player-shell:fullscreen video,
+.player-shell.is-fullscreen video {
+  width: 100%;
+  height: 100%;
+}
+
+.player-shell:fullscreen .pc-bar,
+.player-shell.is-fullscreen .pc-bar {
+  padding: 0 22px 14px;
+}
+
+.player-shell:fullscreen .pc-btn,
+.player-shell.is-fullscreen .pc-btn {
+  width: 42px;
+  height: 42px;
+}
+
+.player-shell:fullscreen .pc-btn svg,
+.player-shell.is-fullscreen .pc-btn svg {
+  width: 23px;
+  height: 23px;
+}
+
+.player-shell:fullscreen .pc-time,
+.player-shell.is-fullscreen .pc-time {
+  font-size: 14px;
+  padding: 0 12px;
+}
+
+.player-shell:fullscreen .pc-progress-track,
+.player-shell.is-fullscreen .pc-progress-track {
+  height: 5px;
+}
+
+.player-shell:fullscreen .pc-progress:hover .pc-progress-track,
+.player-shell.is-fullscreen .pc-progress:hover .pc-progress-track {
+  height: 9px;
+}
+
+.player-shell:fullscreen .pc-bigplay,
+.player-shell.is-fullscreen .pc-bigplay {
+  width: 92px;
+  height: 92px;
+}
+
+.player-shell:fullscreen .pc-bigplay svg,
+.player-shell.is-fullscreen .pc-bigplay svg {
+  width: 38px;
+  height: 38px;
+}
+
+/* ---------- 网页全屏（影院模式）---------- */
+.player-shell.is-theater {
+  position: fixed;
+  left: 0;
+  right: 0;
+  top: 0;
+  bottom: 0;
+  z-index: 999;
+  border-radius: 0;
+  border: none;
+  aspect-ratio: auto;
+  width: 100vw;
+  height: 100vh;
+  background: #000;
+}
+
+.player-shell.is-theater video {
+  width: 100%;
+  height: 100%;
+}
+
+body.theater-lock {
+  overflow: hidden;
+}
+
+/* ---------- 移动端适配 ---------- */
+@media (max-width: 640px) {
+  .pc-bar {
+    padding: 0 8px 5px;
+  }
+
+  .pc-btn {
+    width: 34px;
+    height: 34px;
+  }
+
+  .pc-btn svg {
+    width: 19px;
+    height: 19px;
+  }
+
+  .pc-time {
+    font-size: 11.5px;
+    padding: 0 5px;
+  }
+
+  /* 手机上音量用系统按键，所以隐藏音量条 */
+  .pc-volume {
+    display: none;
+  }
+
+  /* 手机上画中画入口保留，网页全屏隐藏（屏幕本来就小） */
+  #pcTheater {
+    display: none;
+  }
+
+  .pc-bigplay {
+    width: 62px;
+    height: 62px;
+  }
+
+  .pc-bigplay svg {
+    width: 25px;
+    height: 25px;
+  }
+
+  /* 手机上进度条加粗一点，方便手指按 */
+  .pc-progress-track {
+    height: 5px;
+  }
+
+  .pc-progress .pc-progress-dot {
+    width: 14px;
+    height: 14px;
+    right: -7px;
+    transform: translateY(-50%) scale(1);
+  }
+
+  .pc-progress {
+    padding: 11px 0;
+  }
+}
+
+/* 超窄屏：进一步压缩 */
+@media (max-width: 400px) {
+  .pc-time .pc-time-sep,
+  .pc-time #pcDur {
+    display: none;
+  }
+
+  #pcSpeed {
+    min-width: 40px;
+    font-size: 11.5px;
+    padding: 0 6px;
+  }
+}
+
+/* ---------- 分享提示气泡 ---------- */
+.copy-toast {
+  position: fixed;
+  left: 50%;
+  bottom: 40px;
+  transform: translate(-50%, 20px);
+  padding: 12px 24px;
+  border-radius: var(--radius-full);
+  background: var(--surface);
+  color: var(--text);
+  border: 1px solid var(--primary-dim);
+  box-shadow: var(--shadow-lg);
+  font-size: 14px;
+  font-weight: 600;
+  opacity: 0;
+  visibility: hidden;
+  transition: all 0.32s var(--ease-out);
+  z-index: 9999;
+  pointer-events: none;
+  white-space: nowrap;
+}
+
+.copy-toast.show {
+  opacity: 1;
+  visibility: visible;
+  transform: translate(-50%, 0);
+}

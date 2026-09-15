@@ -1,0 +1,370 @@
+<!DOCTYPE html>
+<html lang="zh-CN" data-theme="dark">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+  <title>正在播放 · 温馨小木屋</title>
+  <meta name="description" content="温馨小木屋 —— 在线观看动画作品" />
+  <meta name="theme-color" content="#15120f" />
+
+  <link rel="stylesheet" href="css/style.css" />
+  <link rel="stylesheet" href="css/player.css" />
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Cpath d='M16 3 L29 14 L26 14 L26 28 L19 28 L19 21 L13 21 L13 28 L6 28 L6 14 L3 14 Z' fill='%23e0a869'/%3E%3C/svg%3E" />
+
+  <script>
+    (function () {
+      try {
+        var saved = localStorage.getItem('wxm_theme');
+        if (saved === 'light' || saved === 'dark') {
+          document.documentElement.setAttribute('data-theme', saved);
+        }
+      } catch (e) {}
+    })();
+  </script>
+</head>
+<body>
+
+  <!-- ============ 顶部导航 ============ -->
+  <nav class="nav">
+    <div class="nav-inner">
+      <a class="nav-logo" href="index.html" title="回到首页">
+        <svg class="nav-logo-icon" viewBox="0 0 32 32" fill="none" aria-hidden="true">
+          <path d="M16 3 L29 14 L26 14 L26 28 L19 28 L19 21 L13 21 L13 28 L6 28 L6 14 L3 14 Z"
+                fill="url(#roofGrad2)" />
+          <rect x="14" y="16" width="4" height="4" rx="0.8" fill="#1a1408" opacity="0.7" />
+          <defs>
+            <linearGradient id="roofGrad2" x1="0" y1="0" x2="32" y2="32">
+              <stop offset="0%" stop-color="#f2c08a" />
+              <stop offset="100%" stop-color="#c4773a" />
+            </linearGradient>
+          </defs>
+        </svg>
+        <span class="nav-logo-text" id="navSiteName">温馨小木屋</span>
+      </a>
+
+      <div class="nav-spacer"></div>
+
+      <div class="nav-actions">
+        <a class="btn btn-ghost" href="index.html">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+               stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <path d="M19 12H5M12 19l-7-7 7-7" />
+          </svg>
+          <span>返回首页</span>
+        </a>
+
+        <a class="icon-btn" id="githubLink" href="https://github.com" target="_blank" rel="noopener"
+           title="去我的 GitHub 主页" aria-label="GitHub 主页">
+          <svg viewBox="0 0 16 16" fill="currentColor" aria-hidden="true">
+            <path d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27.68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.01 8.01 0 0 0 16 8c0-4.42-3.58-8-8-8z"/>
+          </svg>
+        </a>
+
+        <button class="icon-btn" id="themeToggle" title="切换浅色 / 深色" aria-label="切换主题">
+          <svg class="theme-icon-sun" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+               stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <circle cx="12" cy="12" r="4.5" />
+            <path d="M12 2v2M12 20v2M4.2 4.2l1.4 1.4M18.4 18.4l1.4 1.4M2 12h2M20 12h2M4.2 19.8l1.4-1.4M18.4 5.6l1.4-1.4" />
+          </svg>
+          <svg class="theme-icon-moon" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+               stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <path d="M21 12.8A9 9 0 1 1 11.2 3a7 7 0 0 0 9.8 9.8z" />
+          </svg>
+        </button>
+      </div>
+    </div>
+  </nav>
+
+  <!-- ============ 主体 ============ -->
+  <main class="page">
+    <div class="watch-layout">
+
+      <!-- ---------- 左：播放器 ---------- -->
+      <div class="player-column">
+
+        <div class="player-shell" id="playerShell">
+          <!-- 视频本体 -->
+          <video id="video" preload="metadata" playsinline webkit-playsinline
+                 x5-video-player-type="h5" controlslist="nodownload"></video>
+
+          <!-- 加载中遮罩 -->
+          <div class="player-loading" id="playerLoading">
+            <div class="spinner"></div>
+            <div class="player-loading-text" id="loadingText">正在加载视频…</div>
+          </div>
+
+          <!-- 出错提示 -->
+          <div class="player-error" id="playerError">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                 stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+              <circle cx="12" cy="12" r="9" />
+              <path d="M12 8v5M12 16.5v.01" />
+            </svg>
+            <div class="player-error-title">视频加载失败</div>
+            <div class="player-error-desc">
+              可能是文件还没上传，或者路径写错了。<br />
+              请检查这个文件是否存在：
+            </div>
+            <div class="player-error-path" id="errorPath"></div>
+          </div>
+
+          <!-- 自动连播提示 -->
+          <div class="autonext-toast" id="autonextToast">
+            <span>即将播放下一集</span>
+            <span class="autonext-countdown" id="autonextCount">5</span>
+            <button class="autonext-btn" id="autonextNow">立即播放</button>
+            <button class="autonext-cancel" id="autonextCancel">取消</button>
+          </div>
+
+          <!-- 快捷键提示（鼠标移到播放器上才显示） -->
+          <div class="kbd-hint">
+            <span class="kbd">空格 暂停</span>
+            <span class="kbd">← → 快退快进</span>
+            <span class="kbd">F 全屏</span>
+          </div>
+
+          <!-- 大播放按钮（暂停时显示） -->
+          <button class="pc-bigplay" id="pcBigPlay" aria-label="播放">
+            <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+              <path d="M8 5.5v13l11-6.5z" />
+            </svg>
+          </button>
+
+          <!-- ---------- 自定义控制条 ---------- -->
+          <div class="pc-bar" id="pcBar">
+
+            <!-- 进度条 -->
+            <div class="pc-progress" id="pcProgress" role="slider"
+                 aria-label="播放进度" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0"
+                 tabindex="0">
+              <div class="pc-progress-track">
+                <div class="pc-progress-buffer" id="pcBuffer"></div>
+                <div class="pc-progress-played" id="pcPlayed">
+                  <span class="pc-progress-dot"></span>
+                </div>
+              </div>
+              <div class="pc-tooltip" id="pcTooltip">0:00</div>
+            </div>
+
+            <!-- 按钮行 -->
+            <div class="pc-row">
+              <!-- 播放/暂停 -->
+              <button class="pc-btn" id="pcPlay" title="播放 / 暂停（空格）" aria-label="播放或暂停">
+                <svg class="pc-ico-play" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+                  <path d="M8 5.5v13l11-6.5z" />
+                </svg>
+                <svg class="pc-ico-pause" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+                  <rect x="7" y="5.5" width="3.6" height="13" rx="1" />
+                  <rect x="13.4" y="5.5" width="3.6" height="13" rx="1" />
+                </svg>
+              </button>
+
+              <!-- 上一集 -->
+              <button class="pc-btn" id="pcPrev" title="上一集" aria-label="上一集">
+                <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+                  <path d="M7 6h2.2v12H7zM19 6v12l-8.2-6z" />
+                </svg>
+              </button>
+
+              <!-- 下一集 -->
+              <button class="pc-btn" id="pcNext" title="下一集" aria-label="下一集">
+                <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+                  <path d="M14.8 6H17v12h-2.2zM5 6v12l8.2-6z" />
+                </svg>
+              </button>
+
+              <!-- 时间 -->
+              <div class="pc-time">
+                <span id="pcCur">0:00</span>
+                <span class="pc-time-sep">/</span>
+                <span id="pcDur">0:00</span>
+              </div>
+
+              <div class="pc-spacer"></div>
+
+              <!-- 音量 -->
+              <div class="pc-volume" id="pcVolumeBox">
+                <button class="pc-btn" id="pcMute" title="静音（M）" aria-label="静音">
+                  <svg class="pc-ico-vol" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+                    <path d="M4 9.5h3.5L12 6v12l-4.5-3.5H4z" />
+                    <path d="M15.2 9.2a4 4 0 0 1 0 5.6" fill="none" stroke="currentColor"
+                          stroke-width="1.8" stroke-linecap="round" />
+                    <path d="M17.6 6.8a7.5 7.5 0 0 1 0 10.4" fill="none" stroke="currentColor"
+                          stroke-width="1.8" stroke-linecap="round" />
+                  </svg>
+                  <svg class="pc-ico-mute" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+                    <path d="M4 9.5h3.5L12 6v12l-4.5-3.5H4z" />
+                    <path d="M16 10l4 4M20 10l-4 4" fill="none" stroke="currentColor"
+                          stroke-width="1.9" stroke-linecap="round" />
+                  </svg>
+                </button>
+                <div class="pc-volume-slider" id="pcVolumeSliderWrap">
+                  <input type="range" id="pcVolume" min="0" max="1" step="0.01" value="1"
+                         aria-label="音量" />
+                </div>
+              </div>
+
+              <!-- 播放速度 -->
+              <button class="pc-btn pc-btn-text" id="pcSpeed" title="播放速度">1.0×</button>
+
+              <!-- 画中画 -->
+              <button class="pc-btn" id="pcPip" title="画中画" aria-label="画中画">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9"
+                     stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                  <rect x="3" y="5" width="18" height="14" rx="2" />
+                  <rect x="12" y="12" width="7" height="5" rx="1" fill="currentColor" stroke="none" />
+                </svg>
+              </button>
+
+              <!-- 网页全屏 -->
+              <button class="pc-btn" id="pcTheater" title="网页全屏" aria-label="网页全屏">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9"
+                     stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                  <rect x="3" y="6" width="18" height="12" rx="1.5" />
+                  <path d="M7 6V4h10v2" />
+                </svg>
+              </button>
+
+              <!-- 全屏 -->
+              <button class="pc-btn" id="pcFull" title="全屏（F）" aria-label="全屏">
+                <svg class="pc-ico-full" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                     stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                  <path d="M4 9V5.5A1.5 1.5 0 0 1 5.5 4H9M15 4h3.5A1.5 1.5 0 0 1 20 5.5V9M20 15v3.5a1.5 1.5 0 0 1-1.5 1.5H15M9 20H5.5A1.5 1.5 0 0 1 4 18.5V15" />
+                </svg>
+                <svg class="pc-ico-exitfull" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                     stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                  <path d="M9 4v3.5A1.5 1.5 0 0 1 7.5 9H4M20 9h-3.5A1.5 1.5 0 0 1 15 7.5V4M15 20v-3.5a1.5 1.5 0 0 1 1.5-1.5H20M4 15h3.5A1.5 1.5 0 0 1 9 16.5V20" />
+                </svg>
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <!-- 标题区 -->
+        <div class="watch-title-block">
+          <h1 class="watch-title" id="watchTitle">加载中…</h1>
+          <div class="watch-subline" id="watchSubline"></div>
+        </div>
+
+        <!-- 操作条 -->
+        <div class="watch-actions">
+          <button class="action-btn" id="likeBtn" title="觉得不错就点个赞">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9"
+                 stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+              <path d="M7 22V10l5-8a2.5 2.5 0 0 1 2.4 3.2L13.6 9H19a2 2 0 0 1 2 2.4l-1.6 8A2 2 0 0 1 17.4 21H7z" />
+              <path d="M7 10H3v12h4" />
+            </svg>
+            <span class="action-label-optional">点赞</span>
+            <span id="likeCount">0</span>
+          </button>
+
+          <button class="action-btn" id="favBtn" title="收藏，下次好找">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9"
+                 stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+              <path d="M12 3.5l2.7 5.6 6.1.9-4.4 4.3 1 6.1-5.4-2.9-5.4 2.9 1-6.1L3.2 10l6.1-.9z" />
+            </svg>
+            <span class="action-label-optional">收藏</span>
+            <span id="favCount">0</span>
+          </button>
+
+          <button class="action-btn" id="shareBtn" title="把链接分享给别人">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9"
+                 stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+              <circle cx="18" cy="5.5" r="2.6" />
+              <circle cx="6" cy="12" r="2.6" />
+              <circle cx="18" cy="18.5" r="2.6" />
+              <path d="M8.3 10.7l7.4-3.9M8.3 13.3l7.4 3.9" />
+            </svg>
+            <span>分享</span>
+          </button>
+
+          <div class="action-spacer"></div>
+
+          <button class="epnav-btn" id="prevEpBtn" title="上一集">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                 stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+              <path d="M15 18l-6-6 6-6" />
+            </svg>
+            <span class="epnav-label">上一集</span>
+          </button>
+
+          <button class="epnav-btn" id="nextEpBtn" title="下一集">
+            <span class="epnav-label">下一集</span>
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                 stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+              <path d="M9 18l6-6-6-6" />
+            </svg>
+          </button>
+        </div>
+      </div>
+
+      <!-- ---------- 右：信息面板 + 选集 ---------- -->
+      <aside class="side-column">
+
+        <!-- 简介 / 评论 -->
+        <div class="info-panel">
+          <div class="tabs">
+            <button class="tab active" data-tab="intro" id="tabIntro">简介</button>
+            <button class="tab" data-tab="comments" id="tabComments">评论</button>
+            <div class="tab-spacer"></div>
+          </div>
+
+          <div class="tab-panels">
+            <!-- 简介 -->
+            <div class="tab-panel active" id="panelIntro">
+              <div class="synopsis-meta" id="synopsisMeta"></div>
+              <div class="synopsis-text" id="synopsisText">加载中…</div>
+              <div class="synopsis-divider"></div>
+              <div class="synopsis-author">
+                <div class="author-avatar" id="authorAvatar">屋</div>
+                <div class="author-info">
+                  <span class="author-name" id="authorName">hi3612</span>
+                  <span class="author-desc">一个人做完的画面、配音和剪辑</span>
+                </div>
+              </div>
+            </div>
+
+            <!-- 评论 -->
+            <div class="tab-panel" id="panelComments">
+              <div class="comments-wrap" id="commentsWrap">
+                <div class="giscus-hint" id="giscusHint">
+                  评论区正在准备中…
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- 选集 -->
+        <div class="episodes-panel">
+          <div class="episodes-head">
+            <span class="episodes-head-title">选集</span>
+            <span class="episodes-head-count" id="epCount"></span>
+          </div>
+          <div class="episodes-list" id="episodeList"></div>
+        </div>
+
+      </aside>
+    </div>
+  </main>
+
+  <!-- ============ 页脚 ============ -->
+  <footer class="site-footer">
+    <span>© <span id="footerYear">2026</span> 温馨小木屋</span>
+    <div class="footer-spacer"></div>
+    <a class="footer-link" id="footerGithub" href="https://github.com" target="_blank" rel="noopener">
+      <svg viewBox="0 0 16 16" fill="currentColor" aria-hidden="true">
+        <path d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27.68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.01 8.01 0 0 0 16 8c0-4.42-3.58-8-8-8z"/>
+      </svg>
+      <span>GitHub</span>
+    </a>
+  </footer>
+
+  <!-- 分享提示气泡 -->
+  <div class="copy-toast" id="copyToast">链接已复制，发给你朋友吧～</div>
+
+  <script src="js/data.js"></script>
+  <script src="js/common.js"></script>
+  <script src="js/watch.js"></script>
+</body>
+</html>
