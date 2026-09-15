@@ -535,6 +535,60 @@ body.theater-lock {
   }
 }
 
+/* ---------- 双击播放/暂停的反馈动画（手机端）---------- */
+.pc-tapflash {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  width: 84px;
+  height: 84px;
+  margin: -42px 0 0 -42px;
+  border-radius: 50%;
+  background: rgba(0, 0, 0, 0.52);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  opacity: 0;
+  visibility: hidden;
+  pointer-events: none;
+  z-index: 9;
+  transform: scale(0.7);
+  will-change: transform, opacity;
+}
+
+.pc-tapflash svg {
+  width: 36px;
+  height: 36px;
+  color: #fff;
+}
+
+.pc-tapflash.show {
+  animation: tapflash-pop 0.6s var(--ease-out) forwards;
+}
+
+@keyframes tapflash-pop {
+  0% {
+    opacity: 1;
+    visibility: visible;
+    transform: scale(0.72);
+  }
+  22% {
+    opacity: 1;
+    visibility: visible;
+    transform: scale(1);
+  }
+  68% {
+    opacity: 1;
+    visibility: visible;
+    transform: scale(1);
+  }
+  100% {
+    opacity: 0;
+    visibility: hidden;
+    transform: scale(1.18);
+  }
+}
+
 /* ---------- 分享提示气泡 ---------- */
 .copy-toast {
   position: fixed;

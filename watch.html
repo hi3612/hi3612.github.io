@@ -116,12 +116,15 @@
             <button class="autonext-cancel" id="autonextCancel">取消</button>
           </div>
 
-          <!-- 快捷键提示（鼠标移到播放器上才显示） -->
+          <!-- 快捷键提示（鼠标移到播放器上才显示，手机上自动隐藏） -->
           <div class="kbd-hint">
             <span class="kbd">空格 暂停</span>
             <span class="kbd">← → 快退快进</span>
             <span class="kbd">F 全屏</span>
           </div>
+
+          <!-- 双击画面时的播放/暂停视觉反馈 -->
+          <div class="pc-tapflash" id="pcTapFlash" aria-hidden="true"></div>
 
           <!-- 大播放按钮（暂停时显示） -->
           <button class="pc-bigplay" id="pcBigPlay" aria-label="播放">

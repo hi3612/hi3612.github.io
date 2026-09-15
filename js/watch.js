@@ -31,7 +31,8 @@
       'pcBar', 'pcProgress', 'pcBuffer', 'pcPlayed', 'pcTooltip', 'pcPlay', 'pcPrev',
       'pcNext', 'pcCur', 'pcDur', 'pcMute', 'pcVolume', 'pcSpeed', 'pcPip', 'pcFull',
       'pcTheater', 'pcBigPlay', 'autonextToast', 'autonextCount', 'autonextNow',
-      'autonextCancel', 'tabIntro', 'tabComments', 'panelIntro', 'panelComments',
+      'autonextCancel', 'pcTapFlash', 'tabIntro', 'tabComments', 'panelIntro',
+      'panelComments',
       'commentsWrap', 'giscusHint',
     ];
     ids.forEach(function (id) {
@@ -518,6 +519,42 @@
         if (!el.video.paused) shell.classList.add('pc-hidden');
       }, 2800);
     }
+  }
+
+  /* ---------- 立刻收起控制条（手机上单击用）---------- */
+  function hideBar() {
+    clearTimeout(state.hideBarTimer);
+    el.playerShell.classList.add('pc-hidden');
+  }
+
+  /* ---------- 切换控制条显示 / 隐藏（手机上单击用）---------- */
+  function toggleBar() {
+    if (el.playerShell.classList.contains('pc-hidden')) {
+      showBarTemporarily();
+    } else {
+      hideBar();
+    }
+  }
+
+  /* ---------- 双击画面时的播放/暂停反馈动画 ---------- */
+  var tapFlashTimer = null;
+  function showTapFlash(playing) {
+    var box = el.pcTapFlash;
+    if (!box) return;
+
+    box.innerHTML = playing
+      ? '<svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M8 5.5v13l11-6.5z"/></svg>'
+      : '<svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><rect x="7" y="5.5" width="3.6" height="13" rx="1"/><rect x="13.4" y="5.5" width="3.6" height="13" rx="1"/></svg>';
+
+    box.classList.remove('show');
+    // 强制重排，让动画能重新播放
+    void box.offsetWidth;
+    box.classList.add('show');
+
+    clearTimeout(tapFlashTimer);
+    tapFlashTimer = setTimeout(function () {
+      box.classList.remove('show');
+    }, 620);
   }
 
   /* ---------- 音量 ---------- */
@@ -1018,16 +1055,81 @@
       startAutonext();
     });
 
-    // 点击视频区域播放/暂停
-    v.addEventListener('click', function () {
-      togglePlay();
-    });
+    // ---------- 交互手势：手机和电脑分开，符合各自的习惯 ----------
+    //   手机：单击 = 显示 / 隐藏控制条，双击 = 播放 / 暂停
+    //   电脑：单击 = 播放 / 暂停，双击 = 全屏（保持电脑上的通用习惯）
+    var isTouch = 'ontouchstart' in window || navigator.maxTouchPoints > 0;
 
-    // 双击视频区域全屏
-    v.addEventListener('dblclick', function (e) {
-      e.preventDefault();
-      toggleFullscreen();
-    });
+    if (isTouch) {
+      var lastTapTime = 0;
+      var singleTapTimer = null;
+      var touchStartX = 0;
+      var touchStartY = 0;
+      var DOUBLE_TAP_MS = 280;
+
+      // 记录手指按下位置，用来区分"点击"和"滑动"
+      el.playerShell.addEventListener(
+        'touchstart',
+        function (e) {
+          touchStartX = e.changedTouches[0].clientX;
+          touchStartY = e.changedTouches[0].clientY;
+        },
+        { passive: true }
+      );
+
+      el.playerShell.addEventListener(
+        'touchend',
+        function (e) {
+          var t = e.changedTouches[0];
+
+          // 手指滑动了（比如在翻页），不算点击
+          if (Math.abs(t.clientX - touchStartX) > 12 || Math.abs(t.clientY - touchStartY) > 12) {
+            return;
+          }
+
+          // 点在控制条 / 大播放按钮 / 自动连播条上时，交给它们自己处理
+          if (
+            e.target.closest &&
+            (e.target.closest('.pc-bar') ||
+              e.target.closest('.pc-bigplay') ||
+              e.target.closest('.autonext-toast'))
+          ) {
+            return;
+          }
+
+          var now = Date.now();
+          if (now - lastTapTime < DOUBLE_TAP_MS) {
+            // ===== 双击：播放 / 暂停 =====
+            clearTimeout(singleTapTimer);
+            singleTapTimer = null;
+            lastTapTime = 0;
+            togglePlay();
+            showTapFlash(!el.video.paused);
+            showBarTemporarily();
+          } else {
+            // 先记下时间，等一下看有没有第二下（避免单击立刻响应）
+            lastTapTime = now;
+            singleTapTimer = setTimeout(function () {
+              singleTapTimer = null;
+              lastTapTime = 0;
+              // ===== 单击：显示 / 隐藏控制条 =====
+              toggleBar();
+            }, DOUBLE_TAP_MS);
+          }
+        },
+        { passive: true }
+      );
+    } else {
+      // 电脑端：单击播放/暂停
+      v.addEventListener('click', function () {
+        togglePlay();
+      });
+      // 电脑端：双击全屏
+      v.addEventListener('dblclick', function (e) {
+        e.preventDefault();
+        toggleFullscreen();
+      });
+    }
 
     // 鼠标移动时显示控制条
     el.playerShell.addEventListener('mousemove', showBarTemporarily);
@@ -1042,18 +1144,6 @@
 
     // 关闭页面前保存
     window.addEventListener('beforeunload', saveProgress);
-
-    // 手机端：点屏幕切换控制条
-    el.playerShell.addEventListener(
-      'touchstart',
-      function (e) {
-        if (el.playerShell.classList.contains('pc-hidden')) {
-          showBarTemporarily();
-          e.preventDefault();
-        }
-      },
-      { passive: false }
-    );
 
     // 开始加载视频
     var firstEp = state.work.episodes[state.epIndex];
