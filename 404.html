@@ -1,0 +1,127 @@
+<!DOCTYPE html>
+<html lang="zh-CN" data-theme="dark">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>找不到这一页 · 温馨小木屋</title>
+  <meta name="robots" content="noindex" />
+
+  <link rel="stylesheet" href="css/style.css" />
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Cpath d='M16 3 L29 14 L26 14 L26 28 L19 28 L19 21 L13 21 L13 28 L6 28 L6 14 L3 14 Z' fill='%23e0a869'/%3E%3C/svg%3E" />
+
+  <script>
+    (function () {
+      try {
+        var saved = localStorage.getItem('wxm_theme');
+        if (saved === 'light' || saved === 'dark') {
+          document.documentElement.setAttribute('data-theme', saved);
+        }
+      } catch (e) {}
+    })();
+  </script>
+
+  <style>
+    .err-wrap {
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 30px 20px;
+      position: relative;
+      z-index: 1;
+    }
+    .err-card {
+      max-width: 480px;
+      width: 100%;
+      text-align: center;
+      background: var(--surface);
+      border: 1px solid var(--border-soft);
+      border-radius: var(--radius-lg);
+      padding: 46px 34px 40px;
+      box-shadow: var(--shadow-lg);
+      animation: err-in 0.6s var(--ease-out);
+    }
+    @keyframes err-in {
+      from { opacity: 0; transform: translateY(16px) scale(0.98); }
+      to   { opacity: 1; transform: translateY(0) scale(1); }
+    }
+    .err-house {
+      width: 84px;
+      height: 84px;
+      margin: 0 auto 22px;
+      display: block;
+      filter: drop-shadow(0 6px 18px var(--primary-glow));
+      animation: err-float 3.4s ease-in-out infinite;
+    }
+    @keyframes err-float {
+      0%, 100% { transform: translateY(0); }
+      50%      { transform: translateY(-9px); }
+    }
+    .err-code {
+      font-family: var(--font-mono);
+      font-size: 60px;
+      font-weight: 800;
+      line-height: 1;
+      margin: 0 0 12px;
+      background: linear-gradient(135deg, var(--primary-bright), var(--primary-dim));
+      -webkit-background-clip: text;
+      background-clip: text;
+      -webkit-text-fill-color: transparent;
+      letter-spacing: -0.02em;
+    }
+    .err-title {
+      font-size: 21px;
+      font-weight: 700;
+      margin: 0 0 10px;
+      color: var(--text);
+    }
+    .err-desc {
+      font-size: 14.5px;
+      color: var(--text-soft);
+      line-height: 1.8;
+      margin: 0 0 28px;
+    }
+    .err-actions {
+      display: flex;
+      gap: 11px;
+      justify-content: center;
+      flex-wrap: wrap;
+    }
+  </style>
+</head>
+<body>
+  <div class="err-wrap">
+    <div class="err-card">
+      <svg class="err-house" viewBox="0 0 32 32" fill="none" aria-hidden="true">
+        <path d="M16 3 L29 14 L26 14 L26 28 L19 28 L19 21 L13 21 L13 28 L6 28 L6 14 L3 14 Z"
+              fill="url(#errGrad)" />
+        <rect x="14" y="16" width="4" height="4" rx="0.8" fill="#1a1408" opacity="0.7" />
+        <defs>
+          <linearGradient id="errGrad" x1="0" y1="0" x2="32" y2="32">
+            <stop offset="0%" stop-color="#f2c08a" />
+            <stop offset="100%" stop-color="#c4773a" />
+          </linearGradient>
+        </defs>
+      </svg>
+
+      <p class="err-code">404</p>
+      <h1 class="err-title">这间屋子是空的</h1>
+      <p class="err-desc">
+        你要找的页面不在小木屋里。<br />
+        可能是链接打错字了，或者这一页已经搬走啦。
+      </p>
+
+      <div class="err-actions">
+        <a class="btn btn-primary" href="/">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+               stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <path d="M3 10.5 L12 3 L21 10.5 V20 a1 1 0 0 1 -1 1 H4 a1 1 0 0 1 -1 -1 Z" />
+            <path d="M9 21 V14 h6 v7" />
+          </svg>
+          <span>回首页看看</span>
+        </a>
+      </div>
+    </div>
+  </div>
+</body>
+</html>
