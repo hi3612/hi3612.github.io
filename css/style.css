@@ -1217,11 +1217,75 @@ button {
 }
 
 .synopsis-text {
+  position: relative;
   font-size: 14px;
   line-height: 1.85;
   color: var(--text-soft);
   white-space: pre-wrap;
   word-break: break-word;
+  /* 默认只显示约 5 行，多出来的折叠起来 */
+  max-height: 9.25em;
+  overflow: hidden;
+  transition: max-height 0.42s var(--ease-out);
+}
+
+/* 展开状态：显示全文 */
+.synopsis-text.expanded {
+  max-height: 200em;
+}
+
+/* 折叠时底部盖一层渐变，暗示"下面还有内容" */
+.synopsis-text::after {
+  content: '';
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  height: 2.7em;
+  background: linear-gradient(180deg, transparent, var(--surface) 88%);
+  pointer-events: none;
+  opacity: 1;
+  transition: opacity 0.3s var(--ease);
+}
+
+.synopsis-text.expanded::after {
+  opacity: 0;
+}
+
+/* 展开 / 收起按钮 */
+.synopsis-toggle {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  margin-top: 9px;
+  padding: 6px 13px;
+  border-radius: var(--radius-full);
+  font-size: 12.5px;
+  font-weight: 600;
+  color: var(--primary);
+  background: var(--surface-2);
+  border: 1px solid var(--border-soft);
+  transition: background-color var(--transition), border-color var(--transition),
+    transform 0.15s var(--ease);
+}
+
+.synopsis-toggle:hover {
+  background: var(--surface-hover);
+  border-color: var(--primary-dim);
+}
+
+.synopsis-toggle:active {
+  transform: scale(0.96);
+}
+
+.synopsis-toggle svg {
+  width: 13px;
+  height: 13px;
+  transition: transform 0.35s var(--ease-out);
+}
+
+.synopsis-toggle.expanded svg {
+  transform: rotate(180deg);
 }
 
 .synopsis-divider {

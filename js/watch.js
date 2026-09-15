@@ -28,7 +28,8 @@
     var ids = [
       'video', 'playerShell', 'playerLoading', 'loadingText', 'playerError', 'errorPath',
       'watchTitle', 'watchSubline', 'episodeList', 'epCount',
-      'synopsisMeta', 'synopsisText', 'authorAvatar', 'authorName',
+      'synopsisMeta', 'synopsisText', 'synopsisToggle', 'synopsisToggleText',
+      'authorAvatar', 'authorName',
       'likeBtn', 'likeCount', 'favBtn', 'favCount', 'shareBtn', 'copyToast',
       'prevEpBtn', 'nextEpBtn',
       'pcBar', 'pcProgress', 'pcBuffer', 'pcPlayed', 'pcTooltip', 'pcPlay', 'pcPrev',
@@ -159,6 +160,67 @@
 
     // 选集数量
     el.epCount.textContent = work.episodes.length + ' 集';
+
+    // 简介太长就折叠起来（带"展开全文"按钮）
+    initSynopsisToggle();
+  }
+
+  /* =========================================================
+     简介折叠：太长时默认收起，点"展开全文"再看
+     ========================================================= */
+  function initSynopsisToggle() {
+    var textEl = el.synopsisText;
+    var btn = el.synopsisToggle;
+    var label = el.synopsisToggleText;
+    if (!textEl || !btn) return;
+
+    // 每次换作品都重置成折叠状态
+    textEl.classList.remove('expanded');
+    textEl.style.maxHeight = '';
+    btn.classList.remove('expanded');
+    if (label) label.textContent = '展开全文';
+
+    // 等浏览器算完布局，再判断内容有没有被截断
+    requestAnimationFrame(function () {
+      var needsToggle = textEl.scrollHeight > textEl.clientHeight + 3;
+      // 简介很短就不需要按钮
+      btn.style.display = needsToggle ? '' : 'none';
+    });
+  }
+
+  function bindSynopsisToggle() {
+    var textEl = el.synopsisText;
+    var btn = el.synopsisToggle;
+    var label = el.synopsisToggleText;
+    if (!textEl || !btn) return;
+
+    btn.addEventListener('click', function () {
+      var isExpanded = textEl.classList.contains('expanded');
+
+      if (isExpanded) {
+        /* ---------- 收起 ---------- */
+        // 先把高度钉在当前实际高度，作为动画起点
+        textEl.style.maxHeight = textEl.scrollHeight + 'px';
+        textEl.classList.remove('expanded');
+        btn.classList.remove('expanded');
+        if (label) label.textContent = '展开全文';
+        // 强制重排一次，过渡才会动起来
+        void textEl.offsetHeight;
+        textEl.style.maxHeight = '';
+      } else {
+        /* ---------- 展开 ---------- */
+        textEl.classList.add('expanded');
+        btn.classList.add('expanded');
+        if (label) label.textContent = '收起';
+        textEl.style.maxHeight = textEl.scrollHeight + 'px';
+        // 动画结束后把控制权还给 CSS（窗口缩放也不会出错）
+        setTimeout(function () {
+          if (textEl.classList.contains('expanded')) {
+            textEl.style.maxHeight = '';
+          }
+        }, 460);
+      }
+    });
   }
 
   function sublineItem(pathD, text) {
@@ -1038,6 +1100,7 @@
     initKeyboard();
     initActions();
     initTabs();
+    bindSynopsisToggle();
 
     // 全屏状态变化时（包括用户按 ESC 或手机返回键退出），自动锁定 / 解除横屏
     function onFullscreenChange() {
