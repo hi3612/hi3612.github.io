@@ -14,7 +14,7 @@
   <meta property="og:description" content="把喜欢的故事，一间一间收好" />
   <meta property="og:url" content="https://hi3612.github.io" />
 
-  <link rel="stylesheet" href="css/style.css?v=4" />
+  <link rel="stylesheet" href="css/style.css?v=5" />
   <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Cpath d='M16 3 L29 14 L26 14 L26 28 L19 28 L19 21 L13 21 L13 28 L6 28 L6 14 L3 14 Z' fill='%23e0a869'/%3E%3C/svg%3E" />
 
   <!-- 在页面渲染前就把主题定好，避免闪白 -->
@@ -100,6 +100,32 @@
       </div>
     </header>
 
+    <!-- 继续观看（没有观看记录时自动隐藏） -->
+    <section id="continueSection" style="display: none;">
+      <div class="section-head">
+        <h2 class="section-title">继续观看</h2>
+        <div class="section-line"></div>
+      </div>
+      <a class="continue-card" id="continueCard" href="#">
+        <div class="continue-thumb">
+          <img id="continueThumb" src="" alt="" />
+        </div>
+        <div class="continue-info">
+          <div class="continue-title" id="continueTitle"></div>
+          <div class="continue-meta" id="continueMeta"></div>
+          <div class="continue-bar">
+            <div class="continue-bar-fill" id="continueBarFill"></div>
+          </div>
+        </div>
+        <div class="continue-go">
+          <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+            <path d="M8 5.5v13l11-6.5z" />
+          </svg>
+          <span>接着看</span>
+        </div>
+      </a>
+    </section>
+
     <!-- 作品列表 -->
     <section>
       <div class="section-head">
@@ -141,8 +167,8 @@
     </svg>
   </button>
 
-  <script src="js/data.js?v=4"></script>
-  <script src="js/common.js?v=4"></script>
-  <script src="js/home.js?v=4"></script>
+  <script src="js/data.js?v=5"></script>
+  <script src="js/common.js?v=5"></script>
+  <script src="js/home.js?v=5"></script>
 </body>
 </html>

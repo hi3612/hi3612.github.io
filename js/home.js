@@ -183,9 +183,91 @@
     });
   }
 
+  /* ---------- 继续观看：找出最近看到一半的那一集 ---------- */
+  function findLastWatched() {
+    var best = null;
+
+    WORKS.forEach(function (work) {
+      work.episodes.forEach(function (ep) {
+        var key = 'wxm_progress_' + work.id + '_' + ep.ep;
+        var data = WXM.store.getJSON(key, null);
+        if (!data || typeof data.t !== 'number' || !data.at) return;
+
+        var dur = data.d > 0 ? data.d : 0;
+        if (!dur) return; // 没有时长信息就跳过
+
+        var pct = data.t / dur;
+        if (pct > 0.96) return; // 已经看完了
+        if (data.t < 3) return; // 才看了开头几秒，不算
+
+        if (!best || data.at > best.data.at) {
+          best = { work: work, ep: ep, data: data, pct: pct, dur: dur };
+        }
+      });
+    });
+
+    return best;
+  }
+
+  function renderContinue() {
+    var section = document.getElementById('continueSection');
+    var card = document.getElementById('continueCard');
+    if (!section || !card) return;
+
+    var last = findLastWatched();
+
+    // 没有观看记录，或者没有需要继续的，就藏起来
+    if (!last) {
+      section.style.display = 'none';
+      return;
+    }
+
+    section.style.display = '';
+
+    // 缩略图
+    var thumb = document.getElementById('continueThumb');
+    if (thumb) {
+      thumb.src = last.work.cover;
+      thumb.alt = last.work.title;
+      thumb.addEventListener('error', function () {
+        thumb.style.display = 'none';
+      });
+    }
+
+    // 标题
+    var titleEl = document.getElementById('continueTitle');
+    if (titleEl) {
+      titleEl.textContent = last.work.title + ' · ' + last.ep.title;
+    }
+
+    // 看到哪里了
+    var metaEl = document.getElementById('continueMeta');
+    if (metaEl) {
+      metaEl.textContent =
+        '看到 ' + formatTime(last.data.t) + ' / ' + formatTime(last.dur) +
+        '（' + Math.round(last.pct * 100) + '%）';
+    }
+
+    // 进度条
+    var fill = document.getElementById('continueBarFill');
+    if (fill) {
+      setTimeout(function () {
+        fill.style.width = Math.round(last.pct * 100) + '%';
+      }, 120);
+    }
+
+    // 跳转链接（带版本号，避免缓存）
+    var ver = (typeof SITE_CONFIG !== 'undefined' && SITE_CONFIG.version) || '1';
+    card.href =
+      'watch.html?work=' + encodeURIComponent(last.work.id) +
+      '&ep=' + last.ep.ep +
+      '&v=' + ver;
+  }
+
   /* ---------- 启动 ---------- */
   function boot() {
     renderStats();
+    renderContinue();
     renderWorks();
   }
 

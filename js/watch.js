@@ -291,6 +291,11 @@
     hideError();
     showLoading('正在加载视频…');
 
+    // 先显示封面图 —— 这样视频加载前看到的是画面，而不是一片黑
+    if (state.work && state.work.cover) {
+      v.setAttribute('poster', state.work.cover);
+    }
+
     // 重置播放器状态
     v.pause();
     v.removeAttribute('src');
