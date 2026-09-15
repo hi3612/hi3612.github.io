@@ -17,6 +17,7 @@
     isSeeking: false, // 是否正在拖动进度条
     lastSaveTime: 0, // 上次保存进度的时间戳（节流）
     loadStartTime: 0, // 本次视频加载的开始时间（用来估算"还需多少秒"）
+    bufferHintTimer: null, // 缓冲提示的定时刷新器
     // 是否触摸设备（手机 / 平板）
     // 触摸设备上要屏蔽鼠标事件，否则点一下会触发模拟的 mousemove，控制条就收不回去了
     isTouch: 'ontouchstart' in window || navigator.maxTouchPoints > 0,
@@ -421,6 +422,20 @@
   function showLoading(text) {
     if (el.loadingText) el.loadingText.textContent = text || '正在加载视频…';
     if (el.playerLoading) el.playerLoading.classList.add('show');
+
+    // 定时刷新提示：慢网络下 progress 事件可能很久才来一次，
+    // 光靠它更新，百分比会一直不动，看着像卡死了
+    if (!state.bufferHintTimer) {
+      state.bufferHintTimer = setInterval(function () {
+        var showing = el.playerLoading && el.playerLoading.classList.contains('show');
+        if (!showing) {
+          clearInterval(state.bufferHintTimer);
+          state.bufferHintTimer = null;
+          return;
+        }
+        updateBufferHint(el.video.paused ? '正在加载视频…' : '缓冲中…');
+      }, 900);
+    }
   }
 
   /* ---------- 缓冲进度提示 ----------
@@ -463,6 +478,10 @@
 
   function hideLoading() {
     if (el.playerLoading) el.playerLoading.classList.remove('show');
+    if (state.bufferHintTimer) {
+      clearInterval(state.bufferHintTimer);
+      state.bufferHintTimer = null;
+    }
   }
 
   function showError(src) {
