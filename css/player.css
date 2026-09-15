@@ -25,15 +25,21 @@
   pointer-events: none;
 }
 
-/* 鼠标移到播放器上时，控制条重新出现 */
-.player-shell.pc-hidden:hover .pc-bar {
-  opacity: 1;
-  transform: translateY(0);
-  pointer-events: auto;
+/* 鼠标移到播放器上时，控制条重新出现
+   —— 只在真正有鼠标的设备上生效。
+   手机上点击会留下"悬停"状态，如果不禁用，控制条就永远收不回去 */
+@media (hover: hover) and (pointer: fine) {
+  .player-shell.pc-hidden:hover .pc-bar {
+    opacity: 1;
+    transform: translateY(0);
+    pointer-events: auto;
+  }
 }
 
-/* 暂停时永远显示控制条 */
-.player-shell.paused .pc-bar {
+/* 暂停时显示控制条
+   —— 但用户手动收起后（加了 pc-hidden）就不强制显示了，
+      这样"单击收起控制条"在暂停状态下也管用 */
+.player-shell.paused:not(.pc-hidden) .pc-bar {
   opacity: 1 !important;
   transform: translateY(0) !important;
   pointer-events: auto !important;

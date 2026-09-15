@@ -16,6 +16,9 @@
     hideBarTimer: null, // 控制条自动隐藏
     isSeeking: false, // 是否正在拖动进度条
     lastSaveTime: 0, // 上次保存进度的时间戳（节流）
+    // 是否触摸设备（手机 / 平板）
+    // 触摸设备上要屏蔽鼠标事件，否则点一下会触发模拟的 mousemove，控制条就收不回去了
+    isTouch: 'ontouchstart' in window || navigator.maxTouchPoints > 0,
   };
 
   /* ---------- 常用元素 ---------- */
@@ -640,6 +643,25 @@
     });
   }
 
+  /* ---------- 横屏锁定（手机上全屏时自动转横屏）---------- */
+  function lockLandscape() {
+    try {
+      if (screen.orientation && typeof screen.orientation.lock === 'function') {
+        screen.orientation.lock('landscape').catch(function () {
+          // 部分浏览器不支持或不允许，忽略即可（比如 iOS Safari）
+        });
+      }
+    } catch (e) {}
+  }
+
+  function unlockLandscape() {
+    try {
+      if (screen.orientation && typeof screen.orientation.unlock === 'function') {
+        screen.orientation.unlock();
+      }
+    } catch (e) {}
+  }
+
   /* ---------- 全屏 ---------- */
   function toggleFullscreen() {
     var shell = el.playerShell;
@@ -650,19 +672,25 @@
         document.exitFullscreen().catch(function () {});
       }
       shell.classList.remove('is-fullscreen');
+      unlockLandscape();
     } else {
       var req =
         shell.requestFullscreen ||
         shell.webkitRequestFullscreen ||
         shell.msRequestFullscreen;
       if (req) {
-        req.call(shell).catch(function () {
-          // 某些环境下全屏被禁用，就用 CSS 模拟
-          shell.classList.add('is-fullscreen');
-        });
+        var p = req.call(shell);
+        if (p && p.catch) {
+          p.catch(function () {
+            // 某些环境下全屏被禁用，就用 CSS 模拟
+            shell.classList.add('is-fullscreen');
+          });
+        }
       } else {
         shell.classList.add('is-fullscreen');
       }
+      // 转横屏要在全屏生效之后才行，所以稍微延迟一下
+      setTimeout(lockLandscape, 120);
     }
   }
 
@@ -783,12 +811,14 @@
       }
     });
 
-    // 方向键扫过时重置隐藏计时
-    document.addEventListener('mousemove', function () {
-      if (el.playerShell.classList.contains('pc-hidden')) {
-        showBarTemporarily();
-      }
-    });
+    // 鼠标移动时把控制条叫回来（手机上不监听，避免误触发）
+    if (!state.isTouch) {
+      document.addEventListener('mousemove', function () {
+        if (el.playerShell.classList.contains('pc-hidden')) {
+          showBarTemporarily();
+        }
+      });
+    }
   }
 
   /* =========================================================
@@ -1004,6 +1034,19 @@
     initActions();
     initTabs();
 
+    // 全屏状态变化时（包括用户按 ESC 或手机返回键退出），自动锁定 / 解除横屏
+    function onFullscreenChange() {
+      var isFull = document.fullscreenElement || document.webkitFullscreenElement;
+      if (isFull) {
+        lockLandscape();
+        showBarTemporarily();
+      } else {
+        unlockLandscape();
+      }
+    }
+    document.addEventListener('fullscreenchange', onFullscreenChange);
+    document.addEventListener('webkitfullscreenchange', onFullscreenChange);
+
     // 播放器按钮
     el.pcPlay.addEventListener('click', togglePlay);
     el.pcBigPlay.addEventListener('click', togglePlay);
@@ -1058,9 +1101,7 @@
     // ---------- 交互手势：手机和电脑分开，符合各自的习惯 ----------
     //   手机：单击 = 显示 / 隐藏控制条，双击 = 播放 / 暂停
     //   电脑：单击 = 播放 / 暂停，双击 = 全屏（保持电脑上的通用习惯）
-    var isTouch = 'ontouchstart' in window || navigator.maxTouchPoints > 0;
-
-    if (isTouch) {
+    if (state.isTouch) {
       var lastTapTime = 0;
       var singleTapTimer = null;
       var touchStartX = 0;
@@ -1131,11 +1172,13 @@
       });
     }
 
-    // 鼠标移动时显示控制条
-    el.playerShell.addEventListener('mousemove', showBarTemporarily);
-    el.playerShell.addEventListener('mouseleave', function () {
-      if (!v.paused) el.playerShell.classList.add('pc-hidden');
-    });
+    // 鼠标移动时显示控制条（只在有鼠标的设备上，手机上会误触发）
+    if (!state.isTouch) {
+      el.playerShell.addEventListener('mousemove', showBarTemporarily);
+      el.playerShell.addEventListener('mouseleave', function () {
+        if (!v.paused) el.playerShell.classList.add('pc-hidden');
+      });
+    }
 
     // 页面隐藏时保存进度
     document.addEventListener('visibilitychange', function () {
