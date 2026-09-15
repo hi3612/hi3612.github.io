@@ -48,7 +48,9 @@
   function buildCard(work, index) {
     var card = document.createElement('a');
     card.className = 'work-card';
-    card.href = 'watch.html?work=' + encodeURIComponent(work.id);
+    // 链接带上版本号：这样更新网站后，访客不会卡在旧缓存里
+    var ver = (typeof SITE_CONFIG !== 'undefined' && SITE_CONFIG.version) || '1';
+    card.href = 'watch.html?work=' + encodeURIComponent(work.id) + '&v=' + ver;
     card.style.animationDelay = (index * 80) + 'ms';
     card.setAttribute('aria-label', work.title);
 
