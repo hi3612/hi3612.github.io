@@ -16,6 +16,7 @@
     hideBarTimer: null, // 控制条自动隐藏
     isSeeking: false, // 是否正在拖动进度条
     lastSaveTime: 0, // 上次保存进度的时间戳（节流）
+    loadStartTime: 0, // 本次视频加载的开始时间（用来估算"还需多少秒"）
     // 是否触摸设备（手机 / 平板）
     // 触摸设备上要屏蔽鼠标事件，否则点一下会触发模拟的 mousemove，控制条就收不回去了
     isTouch: 'ontouchstart' in window || navigator.maxTouchPoints > 0,
@@ -351,6 +352,7 @@
     var v = el.video;
 
     hideError();
+    state.loadStartTime = Date.now();
     showLoading('正在加载视频…');
 
     // 先显示封面图 —— 这样视频加载前看到的是画面，而不是一片黑
@@ -419,6 +421,44 @@
   function showLoading(text) {
     if (el.loadingText) el.loadingText.textContent = text || '正在加载视频…';
     if (el.playerLoading) el.playerLoading.classList.add('show');
+  }
+
+  /* ---------- 缓冲进度提示 ----------
+     慢网络下让用户知道"在加载、加载到哪了"，而不是干等着以为卡死了 */
+  function updateBufferHint(prefix) {
+    var v = el.video;
+    if (!el.loadingText) return;
+    if (!v.duration || !isFinite(v.duration) || v.duration <= 0) {
+      el.loadingText.textContent = prefix || '正在加载视频…';
+      return;
+    }
+
+    var bufferedEnd = 0;
+    try {
+      if (v.buffered.length > 0) {
+        bufferedEnd = v.buffered.end(v.buffered.length - 1);
+      }
+    } catch (e) {}
+
+    var pct = Math.min(100, Math.round((bufferedEnd / v.duration) * 100));
+    var speedText = '';
+
+    // 估算剩余时间（根据当前下载速度）
+    if (state.loadStartTime && bufferedEnd > 0) {
+      var elapsed = (Date.now() - state.loadStartTime) / 1000;
+      if (elapsed > 1.5) {
+        var speed = bufferedEnd / elapsed; // 字节/秒（近似）
+        var remain = v.duration - bufferedEnd;
+        if (speed > 0 && remain > 0) {
+          var etaSec = Math.round(remain / speed);
+          if (etaSec > 0 && etaSec < 600) {
+            speedText = ' · 还需约 ' + etaSec + ' 秒';
+          }
+        }
+      }
+    }
+
+    el.loadingText.textContent = (prefix || '正在加载视频…') + ' ' + pct + '%' + speedText;
   }
 
   function hideLoading() {
@@ -1150,6 +1190,24 @@
     v.addEventListener('durationchange', updateDuration);
     v.addEventListener('loadedmetadata', updateDuration);
     v.addEventListener('progress', updateProgressUI);
+
+    // 下载中：刷新"正在加载 X% · 还需约 Y 秒"提示
+    v.addEventListener('progress', function () {
+      if (el.playerLoading && el.playerLoading.classList.contains('show')) {
+        updateBufferHint('正在加载视频…');
+      }
+    });
+
+    // 播放中卡住了（缓冲不够）：给出提示，而不是让画面莫名冻住
+    v.addEventListener('waiting', function () {
+      showLoading('缓冲中…');
+      updateBufferHint('缓冲中…');
+    });
+
+    // 恢复播放：收起提示
+    v.addEventListener('playing', function () {
+      hideLoading();
+    });
 
     v.addEventListener('volumechange', syncVolumeUI);
 
