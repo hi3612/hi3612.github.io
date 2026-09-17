@@ -595,6 +595,104 @@ body.theater-lock {
   }
 }
 
+/* =========================================================
+   倍速选择面板（点"倍速"按钮弹出，自由选）
+   ========================================================= */
+.pc-speed-menu {
+  position: absolute;
+  right: 12px;
+  bottom: 62px;
+  min-width: 112px;
+  padding: 6px;
+  background: rgba(24, 19, 15, 0.97);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow-lg);
+  display: none;
+  flex-direction: column;
+  gap: 2px;
+  z-index: 12;
+}
+
+.pc-speed-menu.show {
+  display: flex;
+  animation: speed-menu-in 0.22s var(--ease-out);
+}
+
+@keyframes speed-menu-in {
+  from {
+    opacity: 0;
+    transform: translateY(8px) scale(0.96);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+.pc-speed-head {
+  padding: 4px 10px 8px;
+  font-size: 11.5px;
+  color: rgba(255, 255, 255, 0.5);
+  letter-spacing: 0.06em;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+  margin-bottom: 3px;
+}
+
+.pc-speed-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  padding: 8px 11px;
+  border-radius: var(--radius-sm);
+  font-size: 13px;
+  font-weight: 500;
+  color: rgba(255, 255, 255, 0.86);
+  font-variant-numeric: tabular-nums;
+  text-align: left;
+  white-space: nowrap;
+  transition: background-color 0.15s var(--ease), color 0.15s var(--ease);
+}
+
+.pc-speed-item:hover {
+  background: rgba(255, 255, 255, 0.12);
+  color: #fff;
+}
+
+.pc-speed-item.active {
+  color: var(--primary-bright);
+  background: rgba(224, 168, 105, 0.16);
+  font-weight: 700;
+}
+
+.pc-speed-item.active::after {
+  content: '✓';
+  font-size: 12px;
+}
+
+/* 全屏 / 影院模式下菜单要往上挪（那边控制条更高） */
+.player-shell:fullscreen .pc-speed-menu,
+.player-shell.is-fullscreen .pc-speed-menu,
+.player-shell.is-theater .pc-speed-menu {
+  bottom: 76px;
+  right: 20px;
+}
+
+/* 手机上位置微调 */
+@media (max-width: 640px) {
+  .pc-speed-menu {
+    bottom: 56px;
+    right: 8px;
+    min-width: 104px;
+  }
+
+  .pc-speed-item {
+    padding: 8px 10px;
+    font-size: 12.5px;
+  }
+}
+
 /* ---------- 分享提示气泡 ---------- */
 .copy-toast {
   position: fixed;

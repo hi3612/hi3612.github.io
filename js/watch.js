@@ -35,7 +35,8 @@
       'likeBtn', 'likeCount', 'favBtn', 'favCount', 'shareBtn', 'copyToast',
       'prevEpBtn', 'nextEpBtn',
       'pcBar', 'pcProgress', 'pcBuffer', 'pcPlayed', 'pcTooltip', 'pcPlay', 'pcPrev',
-      'pcNext', 'pcCur', 'pcDur', 'pcMute', 'pcVolume', 'pcSpeed', 'pcPip', 'pcFull',
+      'pcNext', 'pcCur', 'pcDur', 'pcMute', 'pcVolume', 'pcSpeed', 'pcSpeedMenu',
+      'pcPip', 'pcFull',
       'pcTheater', 'pcBigPlay', 'autonextToast', 'autonextCount', 'autonextNow',
       'autonextCancel', 'pcTapFlash', 'tabIntro', 'tabComments', 'panelIntro',
       'panelComments',
@@ -367,6 +368,9 @@
     v.load();
 
     v.src = src;
+
+    // 换视频会把倍速重置成 1，这里恢复成用户选的速度
+    v.playbackRate = getSavedSpeed();
 
     var resumeAt = loadProgress();
     var started = false;
@@ -729,29 +733,81 @@
       'linear-gradient(90deg, var(--primary) ' + pct + '%, rgba(255,255,255,.28) ' + pct + '%)';
   }
 
-  /* ---------- 播放速度 ---------- */
-  var SPEEDS = [1, 1.25, 1.5, 2, 0.75, 0.5];
+  /* ---------- 播放速度：点击弹出菜单，想选哪个点哪个 ---------- */
+  function getSavedSpeed() {
+    var s = parseFloat(WXM.store.get('wxm_speed', '1'));
+    return isNaN(s) || s <= 0 ? 1 : s;
+  }
 
   function initSpeed() {
-    var savedSpeed = parseFloat(WXM.store.get('wxm_speed', '1'));
-    if (!isNaN(savedSpeed) && SPEEDS.indexOf(savedSpeed) !== -1) {
-      el.video.playbackRate = savedSpeed;
-    }
+    el.video.playbackRate = getSavedSpeed();
     updateSpeedLabel();
+    syncSpeedMenu();
 
-    el.pcSpeed.addEventListener('click', function () {
-      var cur = el.video.playbackRate;
-      var idx = SPEEDS.indexOf(cur);
-      var next = SPEEDS[(idx + 1) % SPEEDS.length];
-      el.video.playbackRate = next;
-      WXM.store.set('wxm_speed', String(next));
-      updateSpeedLabel();
+    // 点"倍速"按钮：开 / 关面板（stopPropagation 防止被下面的 document 监听立刻关掉）
+    el.pcSpeed.addEventListener('click', function (e) {
+      e.stopPropagation();
+      toggleSpeedMenu();
     });
+
+    // 面板里的每个倍速选项
+    if (el.pcSpeedMenu) {
+      var items = el.pcSpeedMenu.querySelectorAll('.pc-speed-item');
+      Array.prototype.forEach.call(items, function (item) {
+        item.addEventListener('click', function (e) {
+          e.stopPropagation();
+          var speed = parseFloat(item.getAttribute('data-speed'));
+          if (!isNaN(speed) && speed > 0) {
+            setSpeed(speed);
+          }
+          closeSpeedMenu();
+        });
+      });
+    }
+
+    // 点页面其他地方自动收起菜单
+    document.addEventListener('click', function () {
+      closeSpeedMenu();
+    });
+  }
+
+  function setSpeed(speed) {
+    el.video.playbackRate = speed;
+    WXM.store.set('wxm_speed', String(speed));
+    updateSpeedLabel();
+    syncSpeedMenu();
   }
 
   function updateSpeedLabel() {
     var r = el.video.playbackRate;
-    el.pcSpeed.textContent = (r === 1 ? '1.0' : String(r)) + '×';
+    // 1 倍显示成 "1.0×"，其它保留原样（0.75× 等）
+    el.pcSpeed.textContent = (Math.abs(r - 1) < 0.001 ? '1.0' : String(r)) + '×';
+  }
+
+  // 把当前倍速对应的那一项点亮
+  function syncSpeedMenu() {
+    if (!el.pcSpeedMenu) return;
+    var cur = el.video.playbackRate;
+    var items = el.pcSpeedMenu.querySelectorAll('.pc-speed-item');
+    Array.prototype.forEach.call(items, function (item) {
+      var s = parseFloat(item.getAttribute('data-speed'));
+      item.classList.toggle('active', Math.abs(s - cur) < 0.01);
+    });
+  }
+
+  function toggleSpeedMenu() {
+    if (!el.pcSpeedMenu) return;
+    if (el.pcSpeedMenu.classList.contains('show')) {
+      closeSpeedMenu();
+    } else {
+      el.pcSpeedMenu.classList.add('show');
+      syncSpeedMenu();
+      showBarTemporarily();
+    }
+  }
+
+  function closeSpeedMenu() {
+    if (el.pcSpeedMenu) el.pcSpeedMenu.classList.remove('show');
   }
 
   /* ---------- 画中画 ---------- */
