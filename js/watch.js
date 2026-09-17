@@ -780,8 +780,9 @@
 
   function updateSpeedLabel() {
     var r = el.video.playbackRate;
-    // 1 倍显示成 "1.0×"，其它保留原样（0.75× 等）
-    el.pcSpeed.textContent = (Math.abs(r - 1) < 0.001 ? '1.0' : String(r)) + '×';
+    // 整数倍率显示成 "1.0×" "2.0×" "3.0×"，小数倍率保持原样（1.25× / 0.75×）
+    var text = r % 1 === 0 ? r.toFixed(1) : String(r);
+    el.pcSpeed.textContent = text + '×';
   }
 
   // 把当前倍速对应的那一项点亮
